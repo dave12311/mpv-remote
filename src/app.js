@@ -10,6 +10,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors());
+app.options('*', cors());
 
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static('client/public'));

@@ -7,7 +7,6 @@ router.get('/', (req, res) => {
     const path = req.headers.path ? req.headers.path : homedir;
     fs.readdir(path, (err, files) => {
         if(!err) {
-            console.log(req.headers.path);
             let dir = [];
             files.forEach((file) => {
                 if(file.charAt(0) !== '.') {

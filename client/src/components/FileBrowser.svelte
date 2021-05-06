@@ -5,13 +5,14 @@
     import axios from "axios";
     import axiosRetry from "axios-retry";
 
-    const host = location.origin;
+    // noinspection JSIncompatibleTypesComparison
+    const host = (process.env === 'dev') ? 'http://localhost:8080' : location.origin;
 
     let files;
     let path = '';
     let snackbar = false;
 
-    axiosRetry(axios, { retries: axiosRetry.exponentialDelay(3) });
+    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay, retries: 5 });
 
     onMount(() => {
         axios.get(host + '/api/v1/dir')
@@ -42,6 +43,13 @@
         let selected = files.find(o => o.name === e.target.innerText);
         if (selected.type === 'folder') {
             changeFolder(path === '/' ? path + selected.name : path + '/' + selected.name);
+        } else {
+            axios.post(host + '/api/v1/open', {
+                path: path + '/' + selected.name
+            })
+            .then(res => {
+
+            })
         }
     }
 
