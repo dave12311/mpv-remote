@@ -1,14 +1,12 @@
 <script>
-    import {Icon, Button, AppBar, MaterialApp} from 'svelte-materialify';
+    import {Icon, Button, AppBar, MaterialApp} from 'svelte-materialify/src';
     import {mdiMenu} from '@mdi/js';
-    import FileBrowser from "./components/FileBrowser.svelte";
     import MediaController from "./components/MediaController.svelte";
-    import TopAppBar, {Row, Section, Title} from '@smui/top-app-bar'
-    import IconButton from '@smui/icon-button';
+    import FileBrowser from "./components/FileBrowser.svelte";
 
     let theme = 'dark';
 
-    let mediaOpen = true;
+    let mediaOpen = false;
 </script>
 
 <MaterialApp {theme}>
@@ -21,7 +19,7 @@
         <span slot="title">MPV Remote</span>
     </AppBar>
 
-    {#if !{mediaOpen}}
+    {#if !mediaOpen}
         <FileBrowser/>
     {:else}
         <MediaController/>

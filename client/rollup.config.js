@@ -6,6 +6,7 @@ import { terser } from 'rollup-plugin-terser';
 import replace from "@rollup/plugin-replace";
 
 const production = !process.env.ROLLUP_WATCH;
+const sveltePreprocess = require('svelte-preprocess');
 
 export default {
     input: 'src/main.js',
@@ -17,11 +18,17 @@ export default {
     },
     plugins: [
         svelte({
-            emitCss: false
+            preprocess: sveltePreprocess({
+                scss: {
+                    includePaths: ['theme'],
+                },
+            }),
+            emitCss: false,
         }),
 
         replace({
             'process.env': production ? '"production"' : '"dev"',
+            preventAssignment: true
         }),
 
         // If you have external dependencies installed from
@@ -44,6 +51,7 @@ export default {
         production && terser()
     ],
     watch: {
-        include: 'src/**'
+        include: ['src/**', 'theme/**'],
+        clearScreen: false
     }
 };

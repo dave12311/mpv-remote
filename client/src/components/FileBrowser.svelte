@@ -1,5 +1,5 @@
 <script>
-    import { Snackbar, TextField, Icon, Button, List, ListItem } from 'svelte-materialify'
+    import { Snackbar, TextField, Icon, Button, List, ListItem } from 'svelte-materialify/src'
     import { mdiMagnify, mdiFolder, mdiFolderUpload, mdiFile } from '@mdi/js';
     import { onMount } from "svelte";
     import axios from "axios";
