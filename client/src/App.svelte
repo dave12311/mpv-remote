@@ -6,7 +6,7 @@
 
     let theme = 'dark';
 
-    let mediaOpen = false;
+    let mediaOpen = true;
 </script>
 
 <MaterialApp {theme}>

@@ -70,7 +70,7 @@
 </style>
 
 <div>
-    <TextField class="mt-5 mr-5 ml-5 text-white" value={path}>
+    <TextField class="mt-8 mr-5 ml-5 text-white" value={path}>
         <div slot="prepend">
             <Icon path={mdiMagnify}/>
         </div>
@@ -80,7 +80,7 @@
 
 <div class="d-flex justify-center">
     {#if files}
-    <List class="elevation-10 mt-5 pb-0 pt-0" style="width: 85%;">
+    <List class="mt-4 pb-0 pt-0" style="width: 90%;">
         {#each files as file}
             <ListItem class="d-flex" on:click={onFolderSelect}>
                 <span slot="prepend">
