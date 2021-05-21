@@ -1,12 +1,14 @@
 <script>
     import { Snackbar, TextField, Icon, Button, List, ListItem } from 'svelte-materialify/src'
     import { mdiMagnify, mdiFolder, mdiFolderUpload, mdiFile } from '@mdi/js';
-    import { onMount } from "svelte";
+    import { onMount, createEventDispatcher } from "svelte";
     import axios from "axios";
     import axiosRetry from "axios-retry";
 
     // noinspection JSIncompatibleTypesComparison
     const host = (process.env === 'dev') ? 'http://localhost:8080' : location.origin;
+
+    const dispatch = createEventDispatcher();
 
     let files;
     let path = '';
@@ -48,7 +50,7 @@
                 path: path + '/' + selected.name
             })
             .then(res => {
-
+                dispatch('play', res.data);
             })
         }
     }

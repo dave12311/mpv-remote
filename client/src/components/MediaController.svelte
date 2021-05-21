@@ -4,18 +4,36 @@
                 mdiVolumeMedium, mdiVolumeHigh, mdiFolder, mdiFullscreen, mdiFullscreenExit,
                 mdiSubtitles, mdiTune} from '@mdi/js';
 
+    import { metadata } from '../store';
+
     let slider = 0;
     let min = 4, max = 8;
 
-    let playing = false;
-    let fullscreen = false;
+    let player = {
+        playing: false,
+        fullscreen: false,
+        title: '',
+        duration: 0,
+        position: 0
+    };
+
+    const updateMetadata = data => {
+        player = {...player, ...data};
+        console.log(player);
+    }
+
+    metadata.subscribe(updateMetadata);
+
+    const toTimeCode = num => {
+        return Math.floor(num/60) + ':' + Math.floor(num % 60);
+    }
 
     const playOrPause = () => {
-        playing = !playing;
+        player.playing = !player.playing;
     }
 
     const toggleFullScreen = () => {
-        fullscreen = !fullscreen;
+        player.fullscreen = !player.fullscreen;
     }
 </script>
 
@@ -40,17 +58,17 @@
     <!--Filename-->
     <div class="d-flex flex-column flex-grow-1 justify-center">
         <div class="pl-5 pr-5 text-subtitle-1 text-center longtext">
-            Adventure.Time.With.Finn.And.Jake.S03E14.1080p.BluRay.x264-DEiMOS.mkv
+            {player.title}
         </div>
     </div>
 
     <!-- Timeline -->
     <div class="d-flex flex-row ml-4 mr-4">
-        <span class="s-input s-icon time-code">0:00</span>
+        <span class="s-input s-icon time-code">{toTimeCode(player.position)}</span>
         <div style="flex-grow: 1" class="mr-3 ml-3">
             <Slider/>
         </div>
-        <span class="s-input s-icon time-code">0:00</span>
+        <span class="s-input s-icon time-code">{toTimeCode(player.duration)}</span>
     </div>
 
     <!-- Media controls -->
@@ -63,7 +81,7 @@
                 <Icon path={mdiRewind} size="60px"/>
             </Button>
             <Button icon class="mr-3 ml-3" style="width: 104px; height: 104px;" on:click={playOrPause}>
-                {#if playing}
+                {#if player.playing}
                     <Icon path={mdiPause} size="130px"/>
                 {:else}
                     <Icon path={mdiPlay} size="130px"/>
@@ -96,7 +114,7 @@
             <Icon path={mdiFolder}/>
         </Button>
         <Button icon size="x-large" class="mr-3 ml-3" on:click={toggleFullScreen}>
-            {#if fullscreen}
+            {#if player.fullscreen}
                 <Icon path={mdiFullscreenExit}/>
             {:else}
                 <Icon path={mdiFullscreen}/>

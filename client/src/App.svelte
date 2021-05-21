@@ -1,12 +1,19 @@
 <script>
-    import {Icon, Button, AppBar, MaterialApp} from 'svelte-materialify/src';
-    import {mdiMenu} from '@mdi/js';
+    import { Icon, Button, AppBar, MaterialApp } from 'svelte-materialify/src';
+    import { mdiMenu } from '@mdi/js';
     import MediaController from "./components/MediaController.svelte";
     import FileBrowser from "./components/FileBrowser.svelte";
 
+    import { metadata } from './store';
+
     let theme = 'dark';
 
-    let mediaOpen = true;
+    let mediaOpen = false;
+
+    const onPlay = (resMeta) => {
+        metadata.set({...resMeta.detail});
+        mediaOpen = true;
+    }
 </script>
 
 <MaterialApp {theme}>
@@ -20,7 +27,7 @@
     </AppBar>
 
     {#if !mediaOpen}
-        <FileBrowser/>
+        <FileBrowser on:play={onPlay}/>
     {:else}
         <MediaController/>
     {/if}

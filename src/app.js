@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const api = require('./api');
 const { notFound, errorHandler } = require('./middlewares/errors.middleware');
+const mpv = require('./mpvInterface');
 
 const app = express();
 
@@ -24,5 +25,7 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(notFound);
 app.use(errorHandler);
+
+mpv.start();
 
 module.exports = app;
