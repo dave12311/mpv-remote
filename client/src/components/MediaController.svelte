@@ -1,35 +1,72 @@
 <script>
     import { Button, Icon, Slider } from 'svelte-materialify/src';
+    import { host, axios } from '../axiosSettings';
     import {    mdiPlay, mdiPause, mdiFastForward, mdiRewind, mdiSkipNext, mdiSkipPrevious,
                 mdiVolumeMedium, mdiVolumeHigh, mdiFolder, mdiFullscreen, mdiFullscreenExit,
                 mdiSubtitles, mdiTune} from '@mdi/js';
 
     import { metadata } from '../store';
 
-    let slider = 0;
-    let min = 4, max = 8;
+    let localTimer = null;
 
     let player = {
         playing: false,
         fullscreen: false,
         title: '',
         duration: 0,
-        position: 0
+        position: 0,
+        volume: 0,
+        play: () => {
+            if(localTimer === null) {
+                player.playing = true;
+                localTimer = setInterval(() => { player.position++ }, 1000);
+            }
+        },
+        pause: () => {
+            if(localTimer !== null) {
+                player.playing = false;
+                clearInterval(localTimer);
+                localTimer = null;
+            }
+        }
     };
+
+    // Store 'player.duration' because Sliders can't reference it directly?
+    let max = 0;
+
 
     const updateMetadata = data => {
         player = {...player, ...data};
-        console.log(player);
+        max = player.duration;
+
+        player.play();
     }
 
     metadata.subscribe(updateMetadata);
 
     const toTimeCode = num => {
-        return Math.floor(num/60) + ':' + Math.floor(num % 60);
+        const pad = num => {
+            return num < 10 ? '0' + num : num;
+        };
+
+        let timeCode = '';
+        if(num >= 3600) {
+            timeCode += pad(Math.floor(num/3600)) + ':';
+        }
+
+        return timeCode + pad(Math.floor(num / 60)) + ':' + pad(Math.floor(num % 60));
     }
 
-    const playOrPause = () => {
-        player.playing = !player.playing;
+    const playOrPause = async () => {
+        if(player.playing) {
+            await axios.post(host + '/mpv/pause');
+            player.pause();
+        } else {
+            player.play();
+            await axios.post(host + '/mpv/play');
+        }
+        const sync = await axios.get(host + '/mpv/sync');
+        player.position = sync.data.position;
     }
 
     const toggleFullScreen = () => {
@@ -66,9 +103,9 @@
     <div class="d-flex flex-row ml-4 mr-4">
         <span class="s-input s-icon time-code">{toTimeCode(player.position)}</span>
         <div style="flex-grow: 1" class="mr-3 ml-3">
-            <Slider/>
+            <Slider thumb={toTimeCode} 0 max={Math.floor(player.duration)} bind:value={player.position}/>
         </div>
-        <span class="s-input s-icon time-code">{toTimeCode(player.duration)}</span>
+        <span class="s-input s-icon time-code">{'-' + toTimeCode(player.duration-player.position)}</span>
     </div>
 
     <!-- Media controls -->
@@ -98,7 +135,7 @@
 
     <!-- Volume -->
     <div class="mr-4 ml-4 mt-15">
-        <Slider>
+        <Slider 0 100 bind:value={player.volume}>
           <span slot="prepend-outer">
             <Icon path={mdiVolumeMedium} />
           </span>

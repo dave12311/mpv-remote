@@ -30,13 +30,24 @@ const mpvInterface = {
         try {
             await client.load(path);
             metadata.duration = await client.getDuration();
-            metadata.position = (await client.getTimePosition());
+            metadata.position = await client.getTimePosition();
             metadata.title = await client.getTitle();
+            metadata.volume = await client.getProperty('volume');
+            client.play();
         } catch (err) {
             console.log(err);
         }
 
         return metadata;
+    },
+    play: () => {
+        client.play();
+    },
+    pause: () => {
+        client.pause();
+    },
+    getPosition: async () => {
+        return await client.getTimePosition();
     }
 };
 

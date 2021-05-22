@@ -2,11 +2,7 @@
     import { Snackbar, TextField, Icon, Button, List, ListItem } from 'svelte-materialify/src'
     import { mdiMagnify, mdiFolder, mdiFolderUpload, mdiFile } from '@mdi/js';
     import { onMount, createEventDispatcher } from "svelte";
-    import axios from "axios";
-    import axiosRetry from "axios-retry";
-
-    // noinspection JSIncompatibleTypesComparison
-    const host = (process.env === 'dev') ? 'http://localhost:8080' : location.origin;
+    import { host, axios } from '../axiosSettings';
 
     const dispatch = createEventDispatcher();
 
@@ -14,10 +10,8 @@
     let path = '';
     let snackbar = false;
 
-    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay, retries: 5 });
-
     onMount(() => {
-        axios.get(host + '/api/v1/dir')
+        axios.get(host + '/dir')
         .then(result => {
             files = result.data.contents;
             path = result.data.path;
@@ -30,7 +24,7 @@
 
     const changeFolder = p => {
         if (!p) { p = '/' }
-        axios.get(host + '/api/v1/dir', {
+        axios.get(host + '/dir', {
             headers: {
                 'path': p
             }
@@ -46,7 +40,7 @@
         if (selected.type === 'folder') {
             changeFolder(path === '/' ? path + selected.name : path + '/' + selected.name);
         } else {
-            axios.post(host + '/api/v1/open', {
+            axios.post(host + '/mpv/open', {
                 path: path + '/' + selected.name
             })
             .then(res => {

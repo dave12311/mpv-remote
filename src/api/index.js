@@ -1,9 +1,9 @@
 const router = require('express').Router();
 const dir = require('./dir/dir.route');
-const open = require('./open/open.route');
+const mpv = require('./mpv/mpv.route');
 
 // routes registration
 router.use('/dir', dir);
-router.use('/open', open);
+router.use('/mpv', mpv);
 
 module.exports = router;
