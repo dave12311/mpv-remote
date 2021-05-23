@@ -1,6 +1,6 @@
 <script>
     import { Snackbar, TextField, Icon, Button, List, ListItem } from 'svelte-materialify/src'
-    import { mdiMagnify, mdiFolder, mdiFolderUpload, mdiFile } from '@mdi/js';
+    import { mdiMagnify, mdiFolder, mdiFolderUpload, mdiFile, mdiMoviePlay } from '@mdi/js';
     import { onMount, createEventDispatcher } from "svelte";
     import { host, axios } from '../axiosSettings';
 
@@ -39,7 +39,7 @@
         let selected = files.find(o => o.name === e.target.innerText);
         if (selected.type === 'folder') {
             changeFolder(path === '/' ? path + selected.name : path + '/' + selected.name);
-        } else {
+        } else if(selected.type === 'media') {
             axios.post(host + '/mpv/open', {
                 path: path + '/' + selected.name
             })
@@ -55,7 +55,7 @@
 </script>
 
 <style>
-    .float{
+    .float {
         position:fixed;
         width:60px;
         height:60px;
@@ -63,6 +63,15 @@
         right:30px;
         text-align:center;
     }
+
+    .scroll {
+        overflow-x: auto;
+    }
+
+    .scroll::-webkit-scrollbar {
+        display: none;
+    }
+
 </style>
 
 <div>
@@ -82,11 +91,15 @@
                 <span slot="prepend">
                     {#if file.type === 'folder'}
                         <Icon path={mdiFolder}/>
+                    {:else if file.type === 'media'}
+                        <Icon path={mdiMoviePlay}/>
                     {:else}
                         <Icon path={mdiFile}/>
                     {/if}
                 </span>
-                {file.name}
+                <div class="scroll">
+                    {file.name}
+                </div>
             </ListItem>
         {/each}
     </List>

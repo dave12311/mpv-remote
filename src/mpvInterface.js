@@ -55,6 +55,13 @@ const mpvInterface = {
     },
     setPosition: pos => {
         return client.goToPosition(pos);
+    },
+    setFullscreen: state => {
+        if(state) {
+            return client.fullscreen();
+        } else {
+            return client.leaveFullscreen();
+        }
     }
 };
 

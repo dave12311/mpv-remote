@@ -1,11 +1,14 @@
 <script>
     import { Button, Icon, Slider } from 'svelte-materialify/src';
     import { host, axios } from '../axiosSettings';
+    import { createEventDispatcher } from 'svelte';
     import {    mdiPlay, mdiPause, mdiFastForward, mdiRewind, mdiSkipNext, mdiSkipPrevious,
                 mdiVolumeMedium, mdiVolumeHigh, mdiFolder, mdiFullscreen, mdiFullscreenExit,
                 mdiSubtitles, mdiTune} from '@mdi/js';
 
     import { metadata } from '../store';
+
+    const dispatch = createEventDispatcher();
 
     let localTimer = null;
 
@@ -83,7 +86,14 @@
         player.previousPosition = player.position;
     }
 
-    const toggleFullScreen = () => {
+    const folderView = () => {
+        dispatch('back');
+    }
+
+    const toggleFullScreen = async () => {
+        await axios.post(host + '/mpv/fullscreen', {
+            fullscreen: !player.fullscreen
+        });
         player.fullscreen = !player.fullscreen;
     }
 </script>
@@ -160,7 +170,7 @@
 
     <!-- Control buttons -->
     <div class="d-flex flex-row justify-center mt-5">
-        <Button icon size="x-large" class="mr-3 ml-3">
+        <Button icon size="x-large" class="mr-3 ml-3" on:click={folderView}>
             <Icon path={mdiFolder}/>
         </Button>
         <Button icon size="x-large" class="mr-3 ml-3" on:click={toggleFullScreen}>

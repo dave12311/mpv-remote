@@ -48,6 +48,15 @@ router.post('/position', async (req, res) => {
     } catch (e) {
         res.sendStatus(500);
     }
-})
+});
+
+router.post('/fullscreen', async (req, res) => {
+    try {
+        await mpv.setFullscreen(req.body.fullscreen);
+        res.sendStatus(200);
+    } catch (e) {
+        res.sendStatus(500);
+    }
+});
 
 module.exports = router;

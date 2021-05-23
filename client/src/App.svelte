@@ -14,6 +14,10 @@
         metadata.set({...resMeta.detail});
         mediaOpen = true;
     }
+
+    const onBack = () => {
+        mediaOpen = false;
+    }
 </script>
 
 <style>
@@ -39,6 +43,6 @@
     {#if !mediaOpen}
         <FileBrowser on:play={onPlay}/>
     {:else}
-        <MediaController/>
+        <MediaController on:back={onBack}/>
     {/if}
 </MaterialApp>
