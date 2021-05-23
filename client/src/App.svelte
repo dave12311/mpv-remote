@@ -16,6 +16,16 @@
     }
 </script>
 
+<style>
+    :global(.s-app) {
+        display: flex;
+        flex-direction: column;
+    }
+    :global(.s-app-bar) {
+        flex-grow: 0 !important;
+    }
+</style>
+
 <MaterialApp {theme}>
     <AppBar class="primary-color">
         <div slot="icon">

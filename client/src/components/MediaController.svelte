@@ -15,11 +15,18 @@
         title: '',
         duration: 0,
         position: 0,
+        previousPosition: 0,
         volume: 0,
         play: () => {
             if(localTimer === null) {
                 player.playing = true;
-                localTimer = setInterval(() => { player.position++ }, 1000);
+                localTimer = setInterval(() => {
+                    if(player.position === player.previousPosition) {
+                        player.position++;
+                        player.previousPosition = player.position;
+                    }
+                    if(player.position === player.duration) { player.pause(); }
+                }, 1000);
             }
         },
         pause: () => {
@@ -34,10 +41,10 @@
     // Store 'player.duration' because Sliders can't reference it directly?
     let max = 0;
 
-
     const updateMetadata = data => {
         player = {...player, ...data};
         max = player.duration;
+        player.previousPosition = player.position;
 
         player.play();
     }
@@ -65,8 +72,15 @@
             player.play();
             await axios.post(host + '/mpv/play');
         }
-        const sync = await axios.get(host + '/mpv/sync');
+        const sync = await axios.get(host + '/mpv/position');
         player.position = sync.data.position;
+    }
+
+    const setPosition = async () => {
+        await axios.post(host + '/mpv/position', {
+            position: player.position
+        });
+        player.previousPosition = player.position;
     }
 
     const toggleFullScreen = () => {
@@ -91,9 +105,9 @@
     }
 </style>
 
-<div class="d-flex flex-column" style="height: 90vh;">
+<div class="d-flex flex-column flex-grow-1">
     <!--Filename-->
-    <div class="d-flex flex-column flex-grow-1 justify-center">
+    <div class="d-flex flex-column justify-center flex-grow-1">
         <div class="pl-5 pr-5 text-subtitle-1 text-center longtext">
             {player.title}
         </div>
@@ -103,34 +117,33 @@
     <div class="d-flex flex-row ml-4 mr-4">
         <span class="s-input s-icon time-code">{toTimeCode(player.position)}</span>
         <div style="flex-grow: 1" class="mr-3 ml-3">
-            <Slider thumb={toTimeCode} 0 max={Math.floor(player.duration)} bind:value={player.position}/>
+            <Slider thumb={toTimeCode} 0 max={player.duration}
+                    bind:value={player.position} on:change={setPosition}/>
         </div>
         <span class="s-input s-icon time-code">{'-' + toTimeCode(player.duration-player.position)}</span>
     </div>
 
     <!-- Media controls -->
-    <div>
-        <div class="d-flex justify-center mt-15">
-            <Button icon style="width: 50px; height: 50px; margin-top: 28px" class="mr-3 ml-3">
-                <Icon path={mdiSkipPrevious} size="60px"/>
-            </Button>
-            <Button icon style="width: 50px; height: 50px; margin-top: 28px" class="mr-3 ml-3">
-                <Icon path={mdiRewind} size="60px"/>
-            </Button>
-            <Button icon class="mr-3 ml-3" style="width: 104px; height: 104px;" on:click={playOrPause}>
-                {#if player.playing}
-                    <Icon path={mdiPause} size="130px"/>
-                {:else}
-                    <Icon path={mdiPlay} size="130px"/>
-                {/if}
-            </Button>
-            <Button icon style="width: 50px; height: 50px; margin-top: 28px" class="mr-3 ml-3">
-                <Icon path={mdiFastForward} size="60px"/>
-            </Button>
-            <Button icon style="width: 50px; height: 50px; margin-top: 28px" class="mr-3 ml-3">
-                <Icon path={mdiSkipNext} size="60px"/>
-            </Button>
-        </div>
+    <div class="d-flex flex-row justify-center align-center mt-15">
+        <Button icon style="width: 15%; height: 100%;">
+            <Icon path={mdiSkipPrevious} size="20%"/>
+        </Button>
+        <Button icon style="width: 15%; height: 100%;">
+            <Icon path={mdiRewind} size="20%"/>
+        </Button>
+        <Button icon style="width: 40%; height: 100%" on:click={playOrPause}>
+            {#if player.playing}
+                <Icon path={mdiPause} size="50%"/>
+            {:else}
+                <Icon path={mdiPlay} size="50%"/>
+            {/if}
+        </Button>
+        <Button icon style="width: 15%; height: 100%;">
+            <Icon path={mdiFastForward} size="20%"/>
+        </Button>
+        <Button icon style="width: 15%; height: 100%;">
+            <Icon path={mdiSkipNext} size="20%"/>
+        </Button>
     </div>
 
     <!-- Volume -->

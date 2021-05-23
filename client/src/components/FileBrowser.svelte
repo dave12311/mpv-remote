@@ -74,7 +74,7 @@
     </TextField>
 </div>
 
-<div class="d-flex justify-center">
+<div class="d-flex justify-center flex-grow-1">
     {#if files}
     <List class="mt-4 pb-0 pt-0" style="width: 90%;">
         {#each files as file}
@@ -101,11 +101,7 @@
 
 <Snackbar class="justify-space-between" bind:active={snackbar} center bottom timeout={5000}>
     Failed to connect to server.
-    <Button
-            text
-            on:click={() => {
-      snackbar = false;
-    }}>
+    <Button text on:click={() => { snackbar = false; }}>
         Dismiss
     </Button>
 </Snackbar>

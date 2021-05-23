@@ -1,39 +1,43 @@
 const mpvAPI = require('node-mpv');
 
-let client = null;
+let screenNum = 0;
+
+const args = [
+    '--screen=' + screenNum
+];
+
+let client = new mpvAPI({}, args);
+
+const restartAgent = async () => {
+    console.log('MPV instance closed, creating a new one...');
+    client = new mpvAPI({}, args);
+    client.on('quit', restartAgent);
+    try {
+        await client.start();
+        console.log('MPV started');
+    } catch (e) {
+        console.log(e);
+    }
+};
+
+client.start()
+    .then(() => {
+        console.log('MPV started');
+    })
+
+client.on('quit', restartAgent);
 
 const mpvInterface = {
-    start: async () => {
-        if(client === null) {
-            client = new mpvAPI();
-        }
-
-        client.on('quit', () => {
-            client = null;
-        })
-
-        try {
-            await client.start();
-            return true;
-        } catch (err) {
-            console.log(err);
-            return false;
-        }
-    },
     playFile: async path => {
         let metadata = {};
 
-        if(client === null) {
-            await mpvInterface.start();
-        }
-
         try {
             await client.load(path);
-            metadata.duration = await client.getDuration();
-            metadata.position = await client.getTimePosition();
+            metadata.duration = Math.floor(await client.getDuration());
+            metadata.position = Math.floor(await client.getTimePosition());
             metadata.title = await client.getTitle();
             metadata.volume = await client.getProperty('volume');
-            client.play();
+            await client.play();
         } catch (err) {
             console.log(err);
         }
@@ -41,13 +45,16 @@ const mpvInterface = {
         return metadata;
     },
     play: () => {
-        client.play();
+        return client.play();
     },
     pause: () => {
-        client.pause();
+        return client.pause();
     },
-    getPosition: async () => {
-        return await client.getTimePosition();
+    getPosition: () => {
+        return client.getTimePosition();
+    },
+    setPosition: pos => {
+        return client.goToPosition(pos);
     }
 };
 
