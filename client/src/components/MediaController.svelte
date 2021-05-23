@@ -1,5 +1,5 @@
 <script>
-    import { Button, Icon, Slider } from 'svelte-materialify/src';
+    import { Button, Icon, Slider, Snackbar } from 'svelte-materialify/src';
     import { host, axios } from '../axiosSettings';
     import { createEventDispatcher } from 'svelte';
     import {    mdiPlay, mdiPause, mdiFastForward, mdiRewind, mdiSkipNext, mdiSkipPrevious,
@@ -7,8 +7,13 @@
                 mdiSubtitles, mdiTune} from '@mdi/js';
 
     import { metadata } from '../store';
+    import silence from '../silence';
 
     const dispatch = createEventDispatcher();
+
+    let snackbar = false;
+
+    let audio = null;
 
     let localTimer = null;
 
@@ -44,15 +49,61 @@
     // Store 'player.duration' because Sliders can't reference it directly?
     let max = 0;
 
-    const updateMetadata = data => {
+    const playOrPause = async () => {
+        try {
+            if(player.playing) {
+                await axios.post(host + '/mpv/pause');
+                player.pause();
+                audio.pause();
+                navigator.mediaSession.playbackState = 'paused';
+            } else {
+                await axios.post(host + '/mpv/play');
+                player.play();
+                audio.play();
+                navigator.mediaSession.playbackState = 'playing';
+            }
+            const sync = await axios.get(host + '/mpv/position');
+            player.position = sync.data.position;
+            player.previousPosition = player.position;
+        } catch (e) {
+            console.log(e);
+            snackbar = true;
+        }
+    }
+
+    const mediaOpened = data => {
         player = {...player, ...data};
         max = player.duration;
         player.previousPosition = player.position;
 
+        // Initialize Media Session
+        audio = document.createElement('audio');
+        audio.src = silence(player.duration);
+        audio.currentTime = player.position;
+        audio.play();
+
+        if('mediaSession' in navigator) {
+            console.log('Media Session enabled');
+
+            // noinspection JSUnresolvedFunction
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: player.title
+            });
+        }
+
+        navigator.mediaSession.playbackState = 'playing';
+        navigator.mediaSession.setActionHandler('play', playOrPause);
+        navigator.mediaSession.setActionHandler('pause', playOrPause);
+        navigator.mediaSession.setActionHandler('seekbackward', function() { /* Code excerpted. */ });
+        navigator.mediaSession.setActionHandler('seekforward', function() { /* Code excerpted. */ });
+        navigator.mediaSession.setActionHandler('seekto', function() { /* Code excerpted. */ });
+        navigator.mediaSession.setActionHandler('previoustrack', function() { /* Code excerpted. */ });
+        navigator.mediaSession.setActionHandler('nexttrack', function() { /* Code excerpted. */ });
+
         player.play();
     }
 
-    metadata.subscribe(updateMetadata);
+    metadata.subscribe(mediaOpened);
 
     const toTimeCode = num => {
         const pad = num => {
@@ -67,22 +118,11 @@
         return timeCode + pad(Math.floor(num / 60)) + ':' + pad(Math.floor(num % 60));
     }
 
-    const playOrPause = async () => {
-        if(player.playing) {
-            await axios.post(host + '/mpv/pause');
-            player.pause();
-        } else {
-            player.play();
-            await axios.post(host + '/mpv/play');
-        }
-        const sync = await axios.get(host + '/mpv/position');
-        player.position = sync.data.position;
-    }
-
     const setPosition = async () => {
         await axios.post(host + '/mpv/position', {
             position: player.position
         });
+        audio.currentTime = player.position;
         player.previousPosition = player.position;
     }
 
@@ -169,7 +209,7 @@
     </div>
 
     <!-- Control buttons -->
-    <div class="d-flex flex-row justify-center mt-5">
+    <div class="d-flex flex-row justify-center mt-5 pb-5">
         <Button icon size="x-large" class="mr-3 ml-3" on:click={folderView}>
             <Icon path={mdiFolder}/>
         </Button>
@@ -189,3 +229,9 @@
     </div>
 </div>
 
+<Snackbar class="justify-space-between" bind:active={snackbar} center bottom timeout={5000}>
+    Failed to connect to server.
+    <Button text on:click={() => { snackbar = false; }}>
+        Dismiss
+    </Button>
+</Snackbar>

@@ -50,8 +50,8 @@ const mpvInterface = {
     pause: () => {
         return client.pause();
     },
-    getPosition: () => {
-        return client.getTimePosition();
+    getPosition: async () => {
+        return Math.round(await client.getTimePosition());
     },
     setPosition: pos => {
         return client.goToPosition(pos);
