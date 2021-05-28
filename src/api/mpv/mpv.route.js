@@ -41,8 +41,14 @@ router.get('/position', async (req, res) => {
     }
 });
 
+//process.on('unhandledRejection', (reason, p) => {
+//    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+//    // application specific logging, throwing an error, or other logic here
+//});
+
 router.post('/position', async (req, res) => {
     try {
+        //await mpv.setPosition(req.body.position);
         await mpv.setPosition(req.body.position);
         res.sendStatus(200);
     } catch (e) {
@@ -53,6 +59,25 @@ router.post('/position', async (req, res) => {
 router.post('/fullscreen', async (req, res) => {
     try {
         await mpv.setFullscreen(req.body.fullscreen);
+        res.sendStatus(200);
+    } catch (e) {
+        console.log(e);
+        res.sendStatus(500);
+    }
+});
+
+router.post('/volume', async (req, res) => {
+    try {
+        await mpv.setVolume(req.body.volume);
+        res.sendStatus(200);
+    } catch (e) {
+        res.sendStatus(500);
+    }
+});
+
+router.post('/seek', async (req, res) => {
+    try {
+        await mpv.seek(req.body.time);
         res.sendStatus(200);
     } catch (e) {
         res.sendStatus(500);

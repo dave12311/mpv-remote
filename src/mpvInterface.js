@@ -44,25 +44,14 @@ const mpvInterface = {
 
         return metadata;
     },
-    play: () => {
-        return client.play();
-    },
-    pause: () => {
-        return client.pause();
-    },
-    getPosition: async () => {
-        return Math.round(await client.getTimePosition());
-    },
-    setPosition: pos => {
-        return client.goToPosition(pos);
-    },
-    setFullscreen: state => {
-        if(state) {
-            return client.fullscreen();
-        } else {
-            return client.leaveFullscreen();
-        }
-    }
+    play: () => { return client.play(); },
+    pause: () => { return client.pause(); },
+    getPosition: async () => { return Math.round(await client.getTimePosition()); },
+    setPosition: async pos => { return client.goToPosition(pos) },
+    setFullscreen: state => { return state ? client.fullscreen() : client.leaveFullscreen(); },
+    setVolume: volume => { return client.volume(volume); },
+    seek: time => { return client.seek(time); }
 };
 
 module.exports = mpvInterface;
+module.exports.client = client;

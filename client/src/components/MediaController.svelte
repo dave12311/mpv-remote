@@ -11,6 +11,8 @@
 
     const dispatch = createEventDispatcher();
 
+    const seekAmount = 10;
+
     let snackbar = false;
 
     let audio = null;
@@ -49,29 +51,42 @@
     // Store 'player.duration' because Sliders can't reference it directly?
     let max = 0;
 
-    const playOrPause = async () => {
+    metadata.subscribe(mediaOpened);
+
+    function toTimeCode(num) {
+        const pad = num => {
+            return num < 10 ? '0' + num : num;
+        };
+
+        let timeCode = '';
+        if(num >= 3600) {
+            timeCode += pad(Math.floor(num/3600)) + ':';
+        }
+
+        return timeCode + pad(Math.floor(num / 60)) + ':' + pad(Math.floor(num % 60));
+    }
+
+    async function tcWrap(fn, arg) {
         try {
-            if(player.playing) {
-                await axios.post(host + '/mpv/pause');
-                player.pause();
-                audio.pause();
-                navigator.mediaSession.playbackState = 'paused';
-            } else {
-                await axios.post(host + '/mpv/play');
-                player.play();
-                audio.play();
-                navigator.mediaSession.playbackState = 'playing';
-            }
-            const sync = await axios.get(host + '/mpv/position');
-            player.position = sync.data.position;
-            player.previousPosition = player.position;
+            await fn(arg);
         } catch (e) {
             console.log(e);
             snackbar = true;
+            if(player.playing) { player.pause(); }
         }
     }
 
-    const mediaOpened = data => {
+    function folderView() {
+        dispatch('back');
+    }
+
+    async function sync() {
+        const t = await axios.get(host + '/mpv/position');
+        player.position = t.data.position;
+        player.previousPosition = player.position;
+    }
+
+    function mediaOpened(data) {
         player = {...player, ...data};
         max = player.duration;
         player.previousPosition = player.position;
@@ -100,41 +115,52 @@
         navigator.mediaSession.setActionHandler('previoustrack', function() { /* Code excerpted. */ });
         navigator.mediaSession.setActionHandler('nexttrack', function() { /* Code excerpted. */ });
 
+        tcWrap(async () => { await sync(); });
+
         player.play();
     }
 
-    metadata.subscribe(mediaOpened);
-
-    const toTimeCode = num => {
-        const pad = num => {
-            return num < 10 ? '0' + num : num;
-        };
-
-        let timeCode = '';
-        if(num >= 3600) {
-            timeCode += pad(Math.floor(num/3600)) + ':';
-        }
-
-        return timeCode + pad(Math.floor(num / 60)) + ':' + pad(Math.floor(num % 60));
+    function playOrPause() {
+        tcWrap(async () => {
+            if(player.playing) {
+                await axios.post(host + '/mpv/pause');
+                player.pause();
+                audio.pause();
+                navigator.mediaSession.playbackState = 'paused';
+            } else {
+                await axios.post(host + '/mpv/play');
+                player.play();
+                audio.play();
+                navigator.mediaSession.playbackState = 'playing';
+            }
+            await sync();
+        })
     }
 
-    const setPosition = async () => {
-        await axios.post(host + '/mpv/position', {
-            position: player.position
-        });
-        audio.currentTime = player.position;
-        player.previousPosition = player.position;
+    function setPosition() {
+        tcWrap(async () => {
+            await axios.post(host + '/mpv/position', { position: player.position });
+            audio.currentTime = player.position;
+            player.previousPosition = player.position;
+        })
     }
 
-    const folderView = () => {
-        dispatch('back');
+    function toggleFullScreen() {
+        tcWrap(async () => {
+            await axios.post(host + '/mpv/fullscreen', { fullscreen: !player.fullscreen });
+            player.fullscreen = !player.fullscreen;
+        })
     }
 
-    const toggleFullScreen = async () => {
-        await axios.post(host + '/mpv/fullscreen', {
-            fullscreen: !player.fullscreen
-        });
-        player.fullscreen = !player.fullscreen;
+    function updateVolume() {
+        tcWrap(async () => { await axios.post(host + '/mpv/volume', { volume: player.volume }); });
+    }
+
+    function seek(time) {
+        tcWrap(async () => {
+            await axios.post(host + '/mpv/seek', { time: time });
+            await sync();
+        }, time);
     }
 </script>
 
@@ -178,7 +204,7 @@
         <Button icon style="width: 15%; height: 100%;">
             <Icon path={mdiSkipPrevious} size="20%"/>
         </Button>
-        <Button icon style="width: 15%; height: 100%;">
+        <Button icon style="width: 15%; height: 100%;" on:click={function() { return seek(-seekAmount); }}>
             <Icon path={mdiRewind} size="20%"/>
         </Button>
         <Button icon style="width: 40%; height: 100%" on:click={playOrPause}>
@@ -188,7 +214,7 @@
                 <Icon path={mdiPlay} size="50%"/>
             {/if}
         </Button>
-        <Button icon style="width: 15%; height: 100%;">
+        <Button icon style="width: 15%; height: 100%;" on:click={function() { return seek(seekAmount); }}>
             <Icon path={mdiFastForward} size="20%"/>
         </Button>
         <Button icon style="width: 15%; height: 100%;">
@@ -198,7 +224,7 @@
 
     <!-- Volume -->
     <div class="mr-4 ml-4 mt-15">
-        <Slider 0 100 bind:value={player.volume}>
+        <Slider 0 100 bind:value={player.volume} on:change={updateVolume}>
           <span slot="prepend-outer">
             <Icon path={mdiVolumeMedium} />
           </span>
