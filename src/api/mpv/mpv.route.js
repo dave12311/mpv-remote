@@ -1,5 +1,6 @@
 const router = require('express').Router();
-const mpv = require("../../mpvInterface");
+const mpv = require('../../mpvInterface');
+const subtitles = require('./subtitles.route');
 
 // Start playing the file specified in the request body
 router.post('/open', async (req, res) => {
@@ -41,14 +42,8 @@ router.get('/position', async (req, res) => {
     }
 });
 
-//process.on('unhandledRejection', (reason, p) => {
-//    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
-//    // application specific logging, throwing an error, or other logic here
-//});
-
 router.post('/position', async (req, res) => {
     try {
-        //await mpv.setPosition(req.body.position);
         await mpv.setPosition(req.body.position);
         res.sendStatus(200);
     } catch (e) {
@@ -83,5 +78,7 @@ router.post('/seek', async (req, res) => {
         res.sendStatus(500);
     }
 });
+
+router.use('/subtitles', subtitles);
 
 module.exports = router;

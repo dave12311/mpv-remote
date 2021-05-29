@@ -10,12 +10,12 @@
 
     let mediaOpen = false;
 
-    const onPlay = (resMeta) => {
+    function onPlay(resMeta) {
         metadata.set({...resMeta.detail});
         mediaOpen = true;
     }
 
-    const onBack = () => {
+    function onBack() {
         mediaOpen = false;
     }
 </script>
@@ -27,6 +27,9 @@
     }
     :global(.s-app-bar) {
         flex-grow: 0 !important;
+    }
+    :global(body, html) {
+        background-color: #212121;
     }
 </style>
 

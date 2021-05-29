@@ -5,7 +5,6 @@ const cors = require('cors');
 const path = require('path');
 const api = require('./api');
 const { notFound, errorHandler } = require('./middlewares/errors.middleware');
-const mpv = require('./mpvInterface');
 
 const app = express();
 

@@ -6,3 +6,5 @@ export const metadata = writable({
     position: 0,
     volume: 0
 });
+
+export const Path = writable('');

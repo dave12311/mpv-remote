@@ -3,6 +3,7 @@
     import { mdiMagnify, mdiFolder, mdiFolderUpload, mdiFile, mdiMoviePlay } from '@mdi/js';
     import { onMount, createEventDispatcher } from "svelte";
     import { host, axios } from '../axiosSettings';
+    import { Path } from '../store';
 
     const dispatch = createEventDispatcher();
 
@@ -10,19 +11,31 @@
     let path = '';
     let snackbar = false;
 
+    Path.subscribe(updatePath);
+
+    function updatePath(p) {
+        path = p;
+    }
+
     onMount(() => {
-        axios.get(host + '/dir')
-        .then(result => {
-            files = result.data.contents;
-            path = result.data.path;
-        })
-        .catch(e => {
-            snackbar = true;
-            console.log(e);
-        })
+        if(path === '') {
+            axios.get(host + '/dir')
+            .then(result => {
+                files = result.data.contents;
+                if(path === '') {
+                    Path.set(result.data.path);
+                }
+            })
+            .catch(e => {
+                snackbar = true;
+                console.log(e);
+            })
+        } else {
+            changeFolder(path);
+        }
     });
 
-    const changeFolder = p => {
+    function changeFolder(p) {
         if (!p) { p = '/' }
         axios.get(host + '/dir', {
             headers: {
@@ -31,11 +44,11 @@
         })
             .then(result => {
                 files = result.data.contents;
-                path = p;
+                Path.set(p);
             })
     }
 
-    const onFolderSelect = e => {
+    function onFolderSelect(e) {
         let selected = files.find(o => o.name === e.target.innerText);
         if (selected.type === 'folder') {
             changeFolder(path === '/' ? path + selected.name : path + '/' + selected.name);
@@ -49,7 +62,7 @@
         }
     }
 
-    const onUpDirectory = e => {
+    function onUpDirectory() {
         changeFolder(path.substr(0, path.lastIndexOf('/')));
     }
 </script>

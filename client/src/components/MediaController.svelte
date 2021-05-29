@@ -1,3 +1,4 @@
+<!--suppress SpellCheckingInspection -->
 <script>
     import { Button, Icon, Slider, Snackbar } from 'svelte-materialify/src';
     import { host, axios } from '../axiosSettings';
@@ -23,6 +24,8 @@
         playing: false,
         fullscreen: false,
         title: '',
+        path: '',
+        subtitles: false,
         duration: 0,
         position: 0,
         previousPosition: 0,
@@ -38,6 +41,8 @@
                     if(player.position === player.duration) { player.pause(); }
                 }, 1000);
             }
+            audio.play();
+
         },
         pause: () => {
             if(localTimer !== null) {
@@ -45,6 +50,7 @@
                 clearInterval(localTimer);
                 localTimer = null;
             }
+            audio.pause();
         }
     };
 
@@ -53,6 +59,11 @@
 
     metadata.subscribe(mediaOpened);
 
+    /**
+     * Create timecode from a number [01:23]
+     * @param num - in seconds
+     * @returns string
+     */
     function toTimeCode(num) {
         const pad = num => {
             return num < 10 ? '0' + num : num;
@@ -66,9 +77,15 @@
         return timeCode + pad(Math.floor(num / 60)) + ':' + pad(Math.floor(num % 60));
     }
 
+    /**
+     * Wrap function in a try-catch block
+     * @param fn
+     * @param arg
+     * @returns {Promise<void>}
+     */
     async function tcWrap(fn, arg) {
         try {
-            await fn(arg);
+            return await fn(arg);
         } catch (e) {
             console.log(e);
             snackbar = true;
@@ -76,16 +93,27 @@
         }
     }
 
+    /**
+     * Return to the folder view
+     */
     function folderView() {
         dispatch('back');
     }
 
+    /**
+     * Synchronize the local playback timer to MPV
+     * @returns {Promise<void>}
+     */
     async function sync() {
         const t = await axios.get(host + '/mpv/position');
         player.position = t.data.position;
         player.previousPosition = player.position;
     }
 
+    /**
+     * Begin playback. Load metadata of the opened file and start the local timer and media session.
+     * @param data
+     */
     function mediaOpened(data) {
         player = {...player, ...data};
         max = player.duration;
@@ -98,21 +126,25 @@
         audio.play();
 
         if('mediaSession' in navigator) {
-            console.log('Media Session enabled');
-
             // noinspection JSUnresolvedFunction
             navigator.mediaSession.metadata = new MediaMetadata({
                 title: player.title
             });
         }
 
+        // noinspection JSUnresolvedVariable
         navigator.mediaSession.playbackState = 'playing';
+        // noinspection JSUnresolvedFunction, JSUnresolvedVariable
         navigator.mediaSession.setActionHandler('play', playOrPause);
+        // noinspection JSUnresolvedFunction, JSUnresolvedVariable
         navigator.mediaSession.setActionHandler('pause', playOrPause);
-        navigator.mediaSession.setActionHandler('seekbackward', function() { /* Code excerpted. */ });
-        navigator.mediaSession.setActionHandler('seekforward', function() { /* Code excerpted. */ });
-        navigator.mediaSession.setActionHandler('seekto', function() { /* Code excerpted. */ });
+        // noinspection JSUnresolvedFunction, JSUnresolvedVariable
+        navigator.mediaSession.setActionHandler('seekbackward', function() { return seek(-seekAmount); });
+        // noinspection JSUnresolvedFunction, JSUnresolvedVariable
+        navigator.mediaSession.setActionHandler('seekforward', function() { return seek(seekAmount); });
+        // noinspection JSUnresolvedFunction, JSUnresolvedVariable
         navigator.mediaSession.setActionHandler('previoustrack', function() { /* Code excerpted. */ });
+        // noinspection JSUnresolvedFunction, JSUnresolvedVariable
         navigator.mediaSession.setActionHandler('nexttrack', function() { /* Code excerpted. */ });
 
         tcWrap(async () => { await sync(); });
@@ -126,11 +158,13 @@
                 await axios.post(host + '/mpv/pause');
                 player.pause();
                 audio.pause();
+                // noinspection JSUnresolvedVariable
                 navigator.mediaSession.playbackState = 'paused';
             } else {
                 await axios.post(host + '/mpv/play');
                 player.play();
                 audio.play();
+                // noinspection JSUnresolvedVariable
                 navigator.mediaSession.playbackState = 'playing';
             }
             await sync();
@@ -161,6 +195,17 @@
             await axios.post(host + '/mpv/seek', { time: time });
             await sync();
         }, time);
+    }
+
+    function nextSubtitle() {
+        tcWrap(async () => { await axios.post(host + '/mpv/nextSubtitle'); });
+    }
+
+    function getSubtitles() {
+        tcWrap(async () => {
+            const subtitles = (await axios.get(host + '/mpv/subtitles', { headers: {'path': player.path}})).data;
+            console.log(subtitles);
+        })
     }
 </script>
 
@@ -246,7 +291,7 @@
                 <Icon path={mdiFullscreen}/>
             {/if}
         </Button>
-        <Button icon size="x-large" class="mr-3 ml-3">
+        <Button icon size="x-large" class="mr-3 ml-3" on:click={getSubtitles}>
             <Icon path={mdiSubtitles}/>
         </Button>
         <Button icon size="x-large" class="mr-3 ml-3">
