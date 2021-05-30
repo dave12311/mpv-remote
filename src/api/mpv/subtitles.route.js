@@ -7,7 +7,6 @@ router.get('/', async (req, res) => {
         const subtitles = await extractSubtitles(req.headers.path);
         res.status(200).send(subtitles);
     } catch (e) {
-        console.log(e);
         res.sendStatus(500);
     }
 });
@@ -35,7 +34,6 @@ router.post('/select', async (req, res) => {
         await mpv.selectSubtitle(req.body.id);
         res.sendStatus(200);
     } catch (e) {
-        console.log(e);
         res.sendStatus(500);
     }
 });

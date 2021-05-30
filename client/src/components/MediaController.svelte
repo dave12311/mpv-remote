@@ -6,7 +6,7 @@
     import SubtitlePicker from './SubtitlePicker.svelte'
     import {    mdiPlay, mdiPause, mdiFastForward, mdiRewind, mdiSkipNext, mdiSkipPrevious,
                 mdiVolumeMedium, mdiVolumeHigh, mdiFolder, mdiFullscreen, mdiFullscreenExit,
-                mdiSubtitles, mdiSubtitlesOutline, mdiTune} from '@mdi/js';
+                mdiSubtitles, mdiSubtitlesOutline, mdiTune, mdiSpeaker} from '@mdi/js';
 
     import { metadata } from '../store';
     import silence from '../silence';
@@ -34,7 +34,7 @@
         fullscreen: false,
         title: '',
         path: '',
-        hasSubtitles: false,
+        subtitles: 'none',
         duration: 0,
         position: 0,
         previousPosition: 0,
@@ -207,6 +207,10 @@
         }, time);
     }
 
+    function nextAudio() {
+        tcWrap(async () => await axios.post(host + '/mpv/audio/next'));
+    }
+
     function setSubtitle(id) {
         if(id.detail === '-1') {
             tcWrap(async () => { await axios.post(host + '/mpv/subtitles/hide') });
@@ -216,7 +220,7 @@
     }
 
     async function getSubtitles() {
-        if (player.hasSubtitles) {
+        if (player.subtitles === 'embedded') {
             // Cache available subtitles if not already cached
             if(subtitleCache === null) {
                 await tcWrap(async () => {
@@ -229,6 +233,8 @@
             } else {
                 subtitlePicker.open(subtitleCache);
             }
+        } else if (player.subtitles === 'external') {
+            await tcWrap(async () => { await axios.post(host + '/mpv/subtitles/next'); });
         } else {
             noSubtitles = true;
         }
@@ -318,11 +324,14 @@
             {/if}
         </Button>
         <Button icon size="x-large" class="mr-3 ml-3" on:click={getSubtitles}>
-            {#if player.hasSubtitles}
+            {#if player.subtitles !== 'none'}
                 <Icon path={mdiSubtitles}/>
             {:else}
                 <Icon path={mdiSubtitlesOutline}/>
             {/if}
+        </Button>
+        <Button icon size="x-large" class="mr-3 ml-3" on:click={nextAudio}>
+            <Icon path={mdiSpeaker}/>
         </Button>
         <Button icon size="x-large" class="mr-3 ml-3">
             <Icon path={mdiTune}/>

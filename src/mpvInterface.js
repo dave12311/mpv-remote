@@ -1,5 +1,5 @@
 const mpvAPI = require('node-mpv');
-const { hasSubtitles } = require('./subtitles');
+const { checkSubtitles } = require('./subtitles');
 
 /**
  * Monitor ID to display MPV on
@@ -49,18 +49,14 @@ const mpvInterface = {
     playFile: async path => {
         let metadata = {};
 
-        try {
-            await client.load(path);
-            metadata.duration = Math.floor(await client.getDuration());
-            metadata.position = Math.floor(await client.getTimePosition());
-            metadata.path = path;
-            metadata.hasSubtitles = await hasSubtitles(path);
-            metadata.title = await client.getTitle();
-            metadata.volume = await client.getProperty('volume');
-            await client.play();
-        } catch (err) {
-            console.log(err);
-        }
+        await client.load(path);
+        metadata.duration = Math.floor(await client.getDuration());
+        metadata.position = Math.floor(await client.getTimePosition());
+        metadata.path = path;
+        metadata.subtitles = await checkSubtitles(path);
+        metadata.title = await client.getTitle();
+        metadata.volume = await client.getProperty('volume');
+        await client.play();
 
         return metadata;
     },
@@ -126,7 +122,9 @@ const mpvInterface = {
     selectSubtitle: async id => {
         await client.selectSubtitles(id);
         await client.showSubtitles();
-    }
+    },
+
+    nextAudio: () => { return client.cycleAudioTracks(); }
 };
 
 module.exports = mpvInterface;

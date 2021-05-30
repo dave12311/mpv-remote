@@ -79,6 +79,15 @@ router.post('/seek', async (req, res) => {
     }
 });
 
+router.post('/audio/next', async (req, res) => {
+    try {
+        await mpv.nextAudio();
+        res.sendStatus(200);
+    } catch (e) {
+        res.sendStatus(500);
+    }
+})
+
 router.use('/subtitles', subtitles);
 
 module.exports = router;

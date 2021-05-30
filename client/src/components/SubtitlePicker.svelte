@@ -9,7 +9,6 @@
     let subtitles = [];
 
     export function open(subs) {
-        console.log(subs);
         // Renumber subtitle IDs
         let fixed = [];
         let count = 1;
