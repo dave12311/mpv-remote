@@ -3,9 +3,10 @@
     import { Button, Icon, Slider, Snackbar } from 'svelte-materialify/src';
     import { host, axios } from '../axiosSettings';
     import { createEventDispatcher } from 'svelte';
+    import SubtitlePicker from './SubtitlePicker.svelte'
     import {    mdiPlay, mdiPause, mdiFastForward, mdiRewind, mdiSkipNext, mdiSkipPrevious,
                 mdiVolumeMedium, mdiVolumeHigh, mdiFolder, mdiFullscreen, mdiFullscreenExit,
-                mdiSubtitles, mdiTune} from '@mdi/js';
+                mdiSubtitles, mdiSubtitlesOutline, mdiTune} from '@mdi/js';
 
     import { metadata } from '../store';
     import silence from '../silence';
@@ -14,18 +15,26 @@
 
     const seekAmount = 10;
 
-    let snackbar = false;
+    // Snackbar toggles
+    let connectionFailed = false;
+    let noSubtitles = false;
 
     let audio = null;
 
     let localTimer = null;
+
+    // Cache list of subtitles
+    let subtitleCache = null;
+
+    // Subtitle picker dialog instance
+    let subtitlePicker;
 
     let player = {
         playing: false,
         fullscreen: false,
         title: '',
         path: '',
-        subtitles: false,
+        hasSubtitles: false,
         duration: 0,
         position: 0,
         previousPosition: 0,
@@ -88,7 +97,7 @@
             return await fn(arg);
         } catch (e) {
             console.log(e);
-            snackbar = true;
+            connectionFailed = true;
             if(player.playing) { player.pause(); }
         }
     }
@@ -119,35 +128,36 @@
         max = player.duration;
         player.previousPosition = player.position;
 
-        // Initialize Media Session
-        audio = document.createElement('audio');
-        audio.src = silence(player.duration);
-        audio.currentTime = player.position;
-        audio.play();
+        // New file opened, clear subtitle cache
+        subtitleCache = null;
 
+        // Initialize Media Session if available
         if('mediaSession' in navigator) {
             // noinspection JSUnresolvedFunction
             navigator.mediaSession.metadata = new MediaMetadata({
                 title: player.title
             });
+
+            audio = document.createElement('audio');
+            audio.src = silence(player.duration);
+            audio.currentTime = player.position;
+            audio.play();
+
+            // noinspection JSUnresolvedVariable
+            navigator.mediaSession.playbackState = 'playing';
+            // noinspection JSUnresolvedFunction, JSUnresolvedVariable
+            navigator.mediaSession.setActionHandler('play', playOrPause);
+            // noinspection JSUnresolvedFunction, JSUnresolvedVariable
+            navigator.mediaSession.setActionHandler('pause', playOrPause);
+            // noinspection JSUnresolvedFunction, JSUnresolvedVariable
+            navigator.mediaSession.setActionHandler('seekbackward', function() { return seek(-seekAmount); });
+            // noinspection JSUnresolvedFunction, JSUnresolvedVariable
+            navigator.mediaSession.setActionHandler('seekforward', function() { return seek(seekAmount); });
+            // noinspection JSUnresolvedFunction, JSUnresolvedVariable
+            navigator.mediaSession.setActionHandler('previoustrack', function() { /* Code excerpted. */ });
+            // noinspection JSUnresolvedFunction, JSUnresolvedVariable
+            navigator.mediaSession.setActionHandler('nexttrack', function() { /* Code excerpted. */ });
         }
-
-        // noinspection JSUnresolvedVariable
-        navigator.mediaSession.playbackState = 'playing';
-        // noinspection JSUnresolvedFunction, JSUnresolvedVariable
-        navigator.mediaSession.setActionHandler('play', playOrPause);
-        // noinspection JSUnresolvedFunction, JSUnresolvedVariable
-        navigator.mediaSession.setActionHandler('pause', playOrPause);
-        // noinspection JSUnresolvedFunction, JSUnresolvedVariable
-        navigator.mediaSession.setActionHandler('seekbackward', function() { return seek(-seekAmount); });
-        // noinspection JSUnresolvedFunction, JSUnresolvedVariable
-        navigator.mediaSession.setActionHandler('seekforward', function() { return seek(seekAmount); });
-        // noinspection JSUnresolvedFunction, JSUnresolvedVariable
-        navigator.mediaSession.setActionHandler('previoustrack', function() { /* Code excerpted. */ });
-        // noinspection JSUnresolvedFunction, JSUnresolvedVariable
-        navigator.mediaSession.setActionHandler('nexttrack', function() { /* Code excerpted. */ });
-
-        tcWrap(async () => { await sync(); });
 
         player.play();
     }
@@ -187,7 +197,7 @@
     }
 
     function updateVolume() {
-        tcWrap(async () => { await axios.post(host + '/mpv/volume', { volume: player.volume }); });
+        tcWrap(async () => { await axios.post(host + '/mpv/volume', { volume: player.volume }) });
     }
 
     function seek(time) {
@@ -197,15 +207,31 @@
         }, time);
     }
 
-    function nextSubtitle() {
-        tcWrap(async () => { await axios.post(host + '/mpv/nextSubtitle'); });
+    function setSubtitle(id) {
+        if(id.detail === '-1') {
+            tcWrap(async () => { await axios.post(host + '/mpv/subtitles/hide') });
+        } else {
+            tcWrap(async () => { await axios.post(host + '/mpv/subtitles/select', { id: id.detail }) });
+        }
     }
 
-    function getSubtitles() {
-        tcWrap(async () => {
-            const subtitles = (await axios.get(host + '/mpv/subtitles', { headers: {'path': player.path}})).data;
-            console.log(subtitles);
-        })
+    async function getSubtitles() {
+        if (player.hasSubtitles) {
+            // Cache available subtitles if not already cached
+            if(subtitleCache === null) {
+                await tcWrap(async () => {
+                    subtitleCache = (await axios.get(host + '/mpv/subtitles', { headers: {'path': player.path}})).data;
+                })
+            }
+
+            if (subtitleCache.length === 1) {
+                await tcWrap(async () => { await axios.post(host + '/mpv/subtitles/next'); });
+            } else {
+                subtitlePicker.open(subtitleCache);
+            }
+        } else {
+            noSubtitles = true;
+        }
     }
 </script>
 
@@ -292,7 +318,11 @@
             {/if}
         </Button>
         <Button icon size="x-large" class="mr-3 ml-3" on:click={getSubtitles}>
-            <Icon path={mdiSubtitles}/>
+            {#if player.hasSubtitles}
+                <Icon path={mdiSubtitles}/>
+            {:else}
+                <Icon path={mdiSubtitlesOutline}/>
+            {/if}
         </Button>
         <Button icon size="x-large" class="mr-3 ml-3">
             <Icon path={mdiTune}/>
@@ -300,9 +330,15 @@
     </div>
 </div>
 
-<Snackbar class="justify-space-between" bind:active={snackbar} center bottom timeout={5000}>
+<SubtitlePicker bind:this={subtitlePicker} on:selected={setSubtitle}/>
+
+<Snackbar class="justify-space-between" bind:active={connectionFailed} center bottom timeout={5000}>
     Failed to connect to server.
-    <Button text on:click={() => { snackbar = false; }}>
+    <Button text on:click={() => { connectionFailed = false; }}>
         Dismiss
     </Button>
+</Snackbar>
+
+<Snackbar class="flex-row justify-center" bind:active={noSubtitles} center top rounded timeout={3000}>
+    No subtitles available
 </Snackbar>

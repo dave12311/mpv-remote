@@ -1,4 +1,5 @@
 const createReadStream = require('fs').createReadStream;
+const exists = require('fs').existsSync;
 const fileType = require('file-type');
 const { SubtitleParser } = require('matroska-subtitles');
 
@@ -40,7 +41,16 @@ async function hasSubtitles (path) {
     const embedded = await extractSubtitles(path);
 
     if(embedded.length === 0) {
+        let fileName = '';
 
+        // Extract name of file without file extension
+        if(path.charAt(path.length - 4) === '.') {
+            fileName = path.slice(0, -4);
+        } else {
+            fileName = path;
+        }
+
+        return (exists(fileName + '.srt') || exists(fileName + '.ass'));
     } else {
         return true;
     }

@@ -1,7 +1,9 @@
 const router = require('express').Router();
 const fs = require('fs');
 
-const homedir = require('os').homedir();
+//TODO: Remove debug home dir
+// const homedir = require('os').homedir();
+const homedir = '/media/D/Downloads/TORRENT';
 
 const playableFormats = ['mkv', 'mp4', 'mp3', 'avi', 'mov', 'wav'];
 

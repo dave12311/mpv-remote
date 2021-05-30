@@ -54,7 +54,7 @@ const mpvInterface = {
             metadata.duration = Math.floor(await client.getDuration());
             metadata.position = Math.floor(await client.getTimePosition());
             metadata.path = path;
-            metadata.subtitles = await hasSubtitles(path);
+            metadata.hasSubtitles = await hasSubtitles(path);
             metadata.title = await client.getTitle();
             metadata.volume = await client.getProperty('volume');
             await client.play();
@@ -115,7 +115,18 @@ const mpvInterface = {
      * Cycle to the next subtitle (including no subtitle state)
      * @returns {Promise<void>}
      */
-    nextSubtitle: () => { return client.cycleSubtitles(); }
+    nextSubtitle: () => { return client.cycleSubtitles(); },
+
+    /**
+     * Hide subtitles
+     * @returns {Promise<void>}
+     */
+    hideSubtitles: () => { return client.hideSubtitles(); },
+
+    selectSubtitle: async id => {
+        await client.selectSubtitles(id);
+        await client.showSubtitles();
+    }
 };
 
 module.exports = mpvInterface;

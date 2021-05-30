@@ -4,7 +4,6 @@ const mpv = require('../../mpvInterface');
 
 router.get('/', async (req, res) => {
     try {
-        //const subtitles = await sub.extractSubtitles(req.headers.path);
         const subtitles = await extractSubtitles(req.headers.path);
         res.status(200).send(subtitles);
     } catch (e) {
@@ -18,6 +17,25 @@ router.post('/next', async (req, res) => {
         await mpv.nextSubtitle();
         res.sendStatus(200);
     } catch (e) {
+        res.sendStatus(500);
+    }
+});
+
+router.post('/hide', async (req, res) => {
+    try {
+        await mpv.hideSubtitles();
+        res.sendStatus(200);
+    } catch (e) {
+        res.sendStatus(500);
+    }
+});
+
+router.post('/select', async (req, res) => {
+    try {
+        await mpv.selectSubtitle(req.body.id);
+        res.sendStatus(200);
+    } catch (e) {
+        console.log(e);
         res.sendStatus(500);
     }
 });
