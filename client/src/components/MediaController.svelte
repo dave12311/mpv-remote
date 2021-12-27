@@ -117,6 +117,9 @@
         const t = await axios.get(host + '/mpv/position');
         player.position = t.data.position;
         player.previousPosition = player.position;
+
+        // Update Media Session
+        audio.currentTime = player.position;
     }
 
     /**
