@@ -1,29 +1,29 @@
 {
   "name": "mpv-remote",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "An application to provide a web-based remote controller for MPV",
   "main": "index.js",
   "scripts": {
-    "client-install": "cd client && npm install",
+	"install": "npm install && npm install ./client",
     "build": "cd client && npm run build",
     "start": "export NODE_ENV=production && node src/index.js",
-    "serve:server": "nodemon src/index.js",
-    "serve:client": "cd client && npm run dev",
-    "dev": "concurrently \"npm run serve:server\" \"npm run serve:client\""
+    "dev:server": "nodemon src/index.js",
+    "dev:client": "cd client && npm run dev",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "concurrently": "^6.1.0",
-    "nodemon": "^2.0.7"
+    "concurrently": "^6.5.1",
+    "nodemon": "^2.0.15"
   },
   "dependencies": {
-    "body-parser": "^1.19.0",
+    "body-parser": "^1.19.1",
     "cors": "^2.8.5",
-    "express": "^4.17.1",
-    "file-type": "^16.5.0",
-    "matroska-subtitles": "^3.3.1",
-    "node-mpv": "^2.0.0-beta.2"
+    "express": "^4.17.2",
+    "file-type": "^17.0.2",
+    "matroska-subtitles": "^3.3.2",
+    "node-mpv": "^1.5.0"
   }
 }

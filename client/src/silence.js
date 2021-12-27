@@ -34,4 +34,4 @@ function createSilence(seconds = 1) {
     return URL.createObjectURL(blob);
 }
 
-module.exports = createSilence;
+export default createSilence;

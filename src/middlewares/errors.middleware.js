@@ -13,7 +13,7 @@ function errorHandler(err, req, res, next) {
     });
 }
 
-module.exports = {
+export default {
     notFound,
     errorHandler,
 };
