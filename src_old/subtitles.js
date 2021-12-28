@@ -1,6 +1,6 @@
 const createReadStream = require('fs').createReadStream;
 const exists = require('fs').existsSync;
-const fileType = require('file-type');
+const fileType = import('file-type');
 const { SubtitleParser } = require('matroska-subtitles');
 
 /**

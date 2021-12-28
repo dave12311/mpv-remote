@@ -1,9 +1,9 @@
 const router = require('express').Router();
-import dir from './dir/dir.route';
-import mpv from './mpv/mpv.route';
+const dir = require('./dir/dir.route');
+const mpv = require('./mpv/mpv.route');
 
 // routes registration
 router.use('/dir', dir);
 router.use('/mpv', mpv);
 
-export default router;
+module.exports = router;
