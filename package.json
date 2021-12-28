@@ -1,6 +1,10 @@
 {
   "name": "mpv-remote",
   "version": "2.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=17.3.0"
+  },
   "description": "An application to provide a web-based remote controller for MPV",
   "main": "index.js",
   "scripts": {
@@ -24,6 +28,7 @@
     "concurrently": "^6.5.1",
     "eslint": "^8.5.0",
     "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-node": "^11.1.0",
     "nodemon": "^2.0.15",
     "prettier": "^2.5.1",
     "ts-node": "^10.4.0",
