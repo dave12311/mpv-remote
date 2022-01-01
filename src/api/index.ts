@@ -1,3 +1,9 @@
 import { Router } from 'express';
+import dir from './dir/dir.route';
 
-export default Router;
+const router = Router();
+
+// Routes registration
+router.use('/dir', dir);
+
+export default router;
