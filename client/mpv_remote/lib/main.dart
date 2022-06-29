@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         progressIndicatorTheme: const ProgressIndicatorThemeData(
           color: Color(0xff9b59b6),
           linearTrackColor: Color(0xff7f8c8d),
-        )
+        ),
       ),
       home: const FileExplorerView(),
     );

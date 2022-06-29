@@ -14,13 +14,27 @@ class _FileExplorerState extends State<FileExplorer> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       shrinkWrap: true,
       children: <Widget>[
-        Row(
-          children: const [
-            Icon(
-              Icons.folder,
-              size: 20,
+        InkWell(
+          onTap: () {debugPrint('Button');},
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(
+              children: const [
+                Padding(
+                  padding: EdgeInsets.only(left: 20),
+                  child: Icon(
+                    Icons.folder,
+                    size: 40,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(left: 10),
+                  child: Text('Raised by Wolves',
+                      style: TextStyle(fontSize: 20)),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ],
     );

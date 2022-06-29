@@ -22,38 +22,45 @@ class _FloatingPlayerState extends State<FloatingPlayer> {
               borderRadius: BorderRadius.all(Radius.circular(30))),
           child: Material(
             color: const Color(0xff496684),
-            child: Column(children: [
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const PlayerView()),
-                          );
-                        },
-                        child: const Center(
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PlayerView()),
+                );
+              },
+              child: Column(children: [
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Expanded(
+                        child: Center(
                           child: Text('Raised by Wolves S01E05',
-                              style: TextStyle(fontSize: 18)),
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.clip,
+                              ),
                         ),
                       ),
-                    ),
-                    const Icon(
-                      Icons.play_arrow,
-                      size: 75,
-                    )
-                  ],
+                      IconButton(
+                        iconSize: 65,
+                        icon: const Icon(
+                          Icons.play_arrow,
+                        ),
+                        onPressed: () {
+                          debugPrint("Button");
+                        },
+                      )
+                    ],
+                  ),
                 ),
-              ),
-              const LinearProgressIndicator(
-                value: 0.5,
-              )
-            ]),
+                const LinearProgressIndicator(
+                  value: 0.5,
+                )
+              ]),
+            ),
           ),
         ),
       ),
