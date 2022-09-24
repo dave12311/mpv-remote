@@ -3,12 +3,15 @@
 	import MediaController from "./components/MediaController.svelte";
 </script>
 
-<main class="flex flex-col flex-grow">
-	<div class="top-0 left-0 w-screen h-14 bg-fuchsia-900 grid content-center">
-		<h1 class="text-slate-300 text-center text-2xl font-bold">MPV Remote</h1>
+<main class="flex flex-col flex-grow overflow-clip">
+	<div class="top-0 left-0 w-screen h-8 bg-fuchsia-900 grid content-center absolute">
+		<h1 class="text-slate-300 text-center text-xl font-bold">MPV Remote</h1>
+	</div>
+
+	<div class="mt-10 overflow-clip flex flex-col flex-grow">
+		<FileBrowser/>
 	</div>
 	
-	<FileBrowser/>
 </main>
   
 <style lang="postcss" global>

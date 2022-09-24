@@ -29,6 +29,7 @@ export default {
 				postcss: {
 					plugins: [require('tailwindcss')(), require('autoprefixer')()],
 				},
+				replace: [['process.env.prod', production ? "'production'" : "'dev'"]]
             }),
         }),
 		

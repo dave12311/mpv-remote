@@ -18,5 +18,5 @@ interface dirResponse {
 const playableFormats: string[] = ['mkv', 'mp4', 'mp3', 'avi', 'mov', 'wav'];
 const subtitleFormats: string[] = ['srt', 'ass'];
 
-export { fileTypes, fileEntry, dirResponse };
-export { playableFormats, subtitleFormats };
+export type { fileEntry, dirResponse };
+export { fileTypes, playableFormats, subtitleFormats };

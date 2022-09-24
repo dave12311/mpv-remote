@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { readdir, lstatSync } from 'fs';
 import { homedir } from 'os';
 import logger from '../../log';
-import { fileEntry, dirResponse, fileTypes, playableFormats, subtitleFormats } from '../../../shared/fileEntry';
+import { fileEntry, dirResponse, fileTypes, playableFormats, subtitleFormats } from '../../fileEntry';
 
 const router = Router();
 const home: string = homedir();
